@@ -1,26 +1,51 @@
-// 这是在说明我们使用的是proto3语法。
-syntax = "proto3";
 
-// 这部分的内容是关于最后生成的go文件是处在哪个目录哪个包中，.代表在当前日录生成，service代表了生成的go文件的包名是service。
+syntax = "proto3"; // 说明我们使用的是proto3语法
+
+// 这部分的内容是关于最后生成的go文件是处在 哪个目录、哪个包中; .代表在当前目录生成，service代表了生成的go文件的包名是service
 option go_package = ".;service";
 
 
-
-// 然后我们需要定义一个服务，在这个服务中需要有一个方法，这个方法可以接受客户端的参数，再返回服务端的啊应。
-// 其实很容易可以看出，我们定义了一个service，称为SayHeLLo，这个服务中有一个Ppc方法，名为SayHeLLo。
-// 这个方法会发送一个HelLoRequest，然后返回一个HeLLoResponse。
+// service 关键字用于定义一个服务, 其中包含一组 RPC 方法, 如下：
+// 下面这个服务中有一个rpc方法, 名为 SayHello, 这个方法可以接收客户端的参数，再返回服务端的响应
+// 这个方法会发送一个 HelloRequest message, 返回一个 HelloResponse message, HelloRequest和HelloResponse 的定义见下面的message
 service SayHello{
     rpc SayHello(HelloRequest) returns (HelloResponse) {}
 }
 
+// message 关键字定义一个消息体, 就是传输的数据格式的定义, 类似于 C++中的class, JAVA中的class, go中的struct
+// 字段后的”赋值”是设置字段的编号, 定义该字段在结构体 HelloRequest 中的位置, 以及在二进制格式的消息中识别该字段
+// 
+// message 中字段的规则: 
+//     optional: 表示字段为可选, protobuf3没有了required, 默认所有的字段为 optional
+//     required: 表示字段为必填, 在protobuf2不设置会导致编码异常, 在protobuf3中被移除
+//     repeated: 表示可重复字段, 在go中会对应生成为slice.
+//         如: repeated string names=3;
+//         对应生成的go代码为: Names []string `protobuf:"bytes,3,rep,name=names,proto3" json:"names,omitempty"`
+// 
+// 消息体嵌套:
+//     在下面的例子中, person消息就定义在 PersonlInfo 内
+//     message PersonInfo {
+//         message Person{
+//             string name = 1;
+//             int32 height = 2;
+//             repeated int32 weight = 3;
+//         }
+//         repeated Person info = 1;
+//     }
+// 
+//     如果要在它的父消息类型的外部重用这个消息类型, 用 Personlnfo.Person 的形式使用它, 如:
+//         message PersonMessage {
+//             PersonInfo.Person info = 1;
+//         }
+
 message HelloRequest {
     string requestName = 1;
     int64 age=2;
-}
 
+    // repeated string names=3;
+}
 
 message HelloResponse {
     string responseMsg=1;
 }
-
 
