@@ -1,0 +1,8 @@
+
+[req_ext]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = my.grpc.com
+DNS.2 = my.test.com
+IP.1 = 172.16.1.241

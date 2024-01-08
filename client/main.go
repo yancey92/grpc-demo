@@ -2,18 +2,34 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
+	"os"
 
 	pb "demo.test/grpc-demo/client/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 )
 
 func main() {
 
-	// 连接到grpc server端，此处禁用安全传输，没有加密和验证
-	conn, err := grpc.Dial("localhost:9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	certPool := x509.NewCertPool()
+	ca, err := os.ReadFile("./key/cacert.pem")
+	if err != nil {
+		log.Fatalf("could not read ca certificate, err, %v", err)
+	}
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
+		log.Fatalf("failed to append certs")
+	}
+	creds := credentials.NewTLS(&tls.Config{
+		RootCAs: certPool,
+		// InsecureSkipVerify: true,
+	})
+
+	// 连接到grpc server端
+	conn, err := grpc.Dial("my.grpc.com:9090", grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("grpc connection err: %v", err)
 	}
