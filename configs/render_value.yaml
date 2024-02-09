@@ -1,0 +1,14 @@
+---
+# Used to render custom grpc template file
+packageName: service 
+service:
+  - serviceName: SayHello
+    rpc:
+      - rpcFuncName: Hello
+        request:
+          type: "" # "" or "stream"
+          message: HelloRequest
+          # TODO: 后期可以指定 message 初始化的方式(随机、自已指定、不指定)
+        response:
+          type: ""
+          message: HelloResponse

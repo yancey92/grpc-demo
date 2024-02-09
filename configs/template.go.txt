@@ -1,0 +1,41 @@
+// Copyright © 2024 yangxinxin_mail@163.com. All right reserved.
+// Customize or override a struct or method
+// This go file should be generated from the template, Do not modify this file if you are not sure
+// Generate time is {{ currentTime }}
+package {{ .PackageName }}
+{{ $Service_1:= index .Service 0 }} {{ $RPC_1:= index $Service_1.RPC 0 }}
+import (
+	context "context"
+
+	grpc "google.golang.org/grpc"
+)
+
+type MyCustomRequest struct {
+	Request {{ $RPC_1.Request.Message }}
+}
+
+type MyCustomResponse struct {
+	Response *{{ $RPC_1.Response.Message }}
+}
+
+type MyCustomClient interface {
+	CustomFunc(ctx context.Context, in *MyCustomRequest, opts ...grpc.CallOption) (*MyCustomResponse, error)
+}
+
+type myclient struct {
+	cli {{ firstCharLower $Service_1.ServiceName }}Client // The first letter of service name is lowercase
+}
+
+func NewMyCustomClient(cc grpc.ClientConnInterface) MyCustomClient {
+	c := myclient{}
+	c.cli.cc = cc
+	return &c
+}
+
+func (c *myclient) CustomFunc(ctx context.Context, in *MyCustomRequest, opts ...grpc.CallOption) (*MyCustomResponse, error) {
+	result, err := c.cli.{{ $RPC_1.RPCFuncName }}(ctx, &in.Request, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &MyCustomResponse{Response: result}, err
+}

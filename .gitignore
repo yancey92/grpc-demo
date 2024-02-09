@@ -1,0 +1,14 @@
+nohup.out
+.vscode
+
+/bin/*
+!/bin/protoc*
+
+/cmd/client/*
+!cmd/client/*.go
+
+/cmd/render/*
+!cmd/render/*.go
+
+/cmd/server/*
+!cmd/server/*.go
