@@ -1,7 +1,7 @@
 // Copyright © 2024 yangxinxin_mail@163.com. All right reserved.
 // Customize or override a struct or method
 // This go file should be generated from the template, Do not modify this file if you are not sure
-// Generate time is 2024-02-09 11:54:28
+// Generate time is 2024-02-10 03:03:42
 package service
  
 import (

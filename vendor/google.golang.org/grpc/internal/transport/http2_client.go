@@ -52,6 +52,7 @@ import (
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/stats"
 	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/trace"
 )
 
 // clientConnectionCounter counts the number of connections a client has
@@ -286,6 +287,12 @@ func newHTTP2Client(connectCtx, ctx context.Context, addr resolver.Address, opts
 		}
 	}
 	if transportCreds != nil {
+		// TODO: author: yangxinxin_mail@163.com
+		if opts.HandshakeHandler != nil && opts.HandshakeHandler.HandshakeStart != nil {
+			opts.HandshakeHandler.HandshakeStart()
+		}
+		connectCtx = context.WithValue(connectCtx, trace.HandshakeHandlerContextKey{}, opts.HandshakeHandler)
+
 		conn, authInfo, err = transportCreds.ClientHandshake(connectCtx, addr.ServerName, conn)
 		if err != nil {
 			return nil, connectionErrorf(isTemporary(err), err, "transport: authentication handshake failed: %v", err)
@@ -305,6 +312,10 @@ func newHTTP2Client(connectCtx, ctx context.Context, addr resolver.Address, opts
 		isSecure = true
 		if transportCreds.Info().SecurityProtocol == "tls" {
 			scheme = "https"
+		}
+		// TODO: author: yangxinxin_mail@163.com
+		if opts.HandshakeHandler != nil && opts.HandshakeHandler.HandshakeDone != nil {
+			opts.HandshakeHandler.HandshakeDone(err)
 		}
 	}
 	dynamicWindow := true

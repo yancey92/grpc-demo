@@ -20,6 +20,8 @@ package grpc
 
 import (
 	"context"
+
+	"google.golang.org/grpc/trace"
 )
 
 // Invoke sends the RPC request on the wire and returns after response is
@@ -67,8 +69,29 @@ func invoke(ctx context.Context, method string, req, reply any, cc *ClientConn, 
 	if err != nil {
 		return err
 	}
-	if err := cs.SendMsg(req); err != nil {
+	// TODO: author: yangxinxin_mail@163.com
+	handler, _ := ctx.Value(trace.RequestHandlerContextKey{}).(*trace.RequestHandler)
+	if handler != nil && handler.RequestStart != nil {
+		handler.RequestStart()
+	} // END
+
+	err = cs.SendMsg(req)
+
+	// TODO:
+	if handler != nil && handler.RequestDone != nil {
+		handler.RequestDone(err)
+	} // END
+
+	if err != nil {
 		return err
 	}
-	return cs.RecvMsg(reply)
+
+	err = cs.RecvMsg(reply)
+
+	// TODO:
+	if handler != nil && handler.ResponseDone != nil {
+		handler.ResponseDone(err)
+	} // END
+
+	return err
 }

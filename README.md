@@ -119,10 +119,11 @@
 
 
 ### 主要介绍一下 grpc-client 项目结构
+
 ```
-./grpc-client
-├── api/                        # all apis
-├── bin/                        # tools to generate gRPC code
+./
+├── README.md
+├── bin/                                 # tools to generate gRPC code
 │   ├── protoc-gen-go-grpc-osx-x86_64*
 │   ├── protoc-gen-go-grpc.exe
 │   ├── protoc-gen-go-osx-x86_64*
@@ -132,35 +133,39 @@
 │   ├── protoc-osx-x86_64*
 │   ├── protoc-win64.exe
 ├── cmd/
-│   ├── client/                     # grpc client main
-│   └── render/                     # custom render main
-├── configs/                        # config directory
-│   ├── hello.proto               
+│   ├── client/                          # grpc client main
+│   ├── render/                          # custom render main
+│   └── server/                          # grpc server main
+├── configs/                             # config directory
+│   ├── hello.proto
 │   ├── key/
 │   ├── render_value.yaml
 │   └── template.go.txt
 ├── go.mod
 ├── go.sum
 ├── internal/
-│   ├── logic/          # implement your logic
-│   ├── models/         # all models struct
-│   ├── proto/          # generate gRPC code, don't modify it
-├── pkg/                # tools
-├── start.sh*           # project build and running script
-└── vendor/             # go mod vendor
+│   ├── client/
+│   └── server/
+├── media/
+│   └── 17065866939745.jpg
+├── pkg/                                 # tools
+├── scripts/                             # project build and running script
+│   ├── client-start.sh*
+│   └── server-start.sh*
+└── vendor/                              # go mod vendor
 ```
 
 ### 运行
 #### 启动 grpc-server:
-    cd grpc-server/cmd/; go run main.go
+    sh scripts/server-start.sh
 
 
 #### 启动 grpc-client:
 1. 如果你是在本地调试，并且使用了证书，请配置 hosts: `127.0.0.1 my.grpc.com`
 
 
-2. 直接运行 sh start.sh，该脚本主要作用：
-    1. 编译出 render，render 的主要作用是渲染 template.go.txt
+2. 直接运行 sh scripts/client-start.sh，该脚本主要作用：
+    1. 编译出 render (render 的主要作用是渲染 template.go.txt)
     2. 使用 bin/protoc* 工具，生成 gRPC client 代码到 internal/proto/ 下面
     3. render 程序渲染 configs/template.go.txt，渲染时会使用 configs/render_value.yaml 中的配置
     4. 编译 grpc client 代码
@@ -168,6 +173,6 @@
 
 
 #### 获取grpc client连接 grpc server 的网络指标:
-* 可以直接调用 grpc-client/internal/logic/grpc.go/MockRPC() 函数。
-* 如果你在启动grpc client时，开启了http 服务，访问 `/api/v1/metrics/grpc/network?pretty=true` 也可以。最终获取到的指标格式见：internal/models/metrics.go 中的 MetricsGRPC
+* 可以直接调用 internal/client/logic/grpc.go/MockRPC() 函数。
+* 如果你在启动 grpc client 时，开启了 http 服务，访问 `/api/v1/metrics/grpc/network?pretty=true` 也可以。最终获取到的指标格式见：internal/client/models/metrics.go 中的 MetricsGRPC
 

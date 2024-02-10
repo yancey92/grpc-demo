@@ -46,6 +46,7 @@ import (
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/stats"
 	"google.golang.org/grpc/status"
+	mytrace "google.golang.org/grpc/trace"
 )
 
 var metadataFromOutgoingContextRaw = internal.FromOutgoingContextRaw.(func(context.Context) (metadata.MD, [][]string, bool))
@@ -1067,6 +1068,7 @@ func (a *csAttempt) recvMsg(m any, payInfo *payloadInfo) (err error) {
 		payInfo = &payloadInfo{}
 	}
 
+	handler, _ := a.ctx.Value(mytrace.RequestHandlerContextKey{}).(*mytrace.RequestHandler)
 	if !a.decompSet {
 		// Block until we receive headers containing received message encoding.
 		if ct := a.s.RecvCompress(); ct != "" && ct != encoding.Identity {
@@ -1080,6 +1082,12 @@ func (a *csAttempt) recvMsg(m any, payInfo *payloadInfo) (err error) {
 			// No compression is used; disable our decompressor.
 			a.dc = nil
 		}
+
+		// TODO:  author: yangxinxin_mail@163.com
+		if handler != nil && handler.ResponseStart != nil { // 收到第一次响应
+			handler.ResponseStart()
+		} // END
+
 		// Only initialize this state once per stream.
 		a.decompSet = true
 	}

@@ -25,7 +25,7 @@ type server struct {
 // 重写 UnimplementedSayHelloServer 中的方法
 func (s *server) Hello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloResponse, error) {
 	if req.RequestName != "" {
-		fmt.Printf("reveive a message: %#v", req)
+		fmt.Printf("reveive a message: %#v\n", req)
 		return &pb.HelloResponse{
 			ResponseMsg: "Hello " + req.RequestName,
 		}, nil

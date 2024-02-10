@@ -12,3 +12,6 @@ nohup.out
 
 /cmd/server/*
 !cmd/server/*.go
+
+/internal/client/proto/my_generate.go
+

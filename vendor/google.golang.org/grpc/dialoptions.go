@@ -34,6 +34,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/stats"
+	"google.golang.org/grpc/trace"
 )
 
 func init() {
@@ -360,6 +361,13 @@ func WithNoProxy() DialOption {
 func WithTransportCredentials(creds credentials.TransportCredentials) DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
 		o.copts.TransportCredentials = creds
+	})
+}
+
+// TODO: handshake handler, author: yangxinxin_mail@163.com
+func WithTransportCredentialsHandler(handler *trace.HandshakeHandler) DialOption {
+	return newFuncDialOption(func(o *dialOptions) {
+		o.copts.HandshakeHandler = handler
 	})
 }
 

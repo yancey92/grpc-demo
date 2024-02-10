@@ -614,7 +614,7 @@ func (p *parser) recvMsg(maxReceiveMessageSize int) (pf payloadFormat, msg []byt
 		return 0, nil, status.Errorf(codes.ResourceExhausted, "grpc: received message larger than max (%d vs. %d)", length, maxReceiveMessageSize)
 	}
 	msg = p.recvBufferPool.Get(int(length))
-	if _, err := p.r.Read(msg); err != nil {
+	if _, err := p.r.Read(msg); err != nil { // 获取到server返回的消息（全部读到msg里）
 		if err == io.EOF {
 			err = io.ErrUnexpectedEOF
 		}

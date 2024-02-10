@@ -42,6 +42,7 @@ import (
 	"google.golang.org/grpc/stats"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/tap"
+	"google.golang.org/grpc/trace"
 )
 
 const logLevel = 2
@@ -607,6 +608,9 @@ type ConnectOptions struct {
 	MaxHeaderListSize *uint32
 	// UseProxy specifies if a proxy should be used.
 	UseProxy bool
+
+	HandshakeHandler *trace.HandshakeHandler // TODO: Author: yangxinxin_mail@163.com
+
 }
 
 // NewClientTransport establishes the transport with the required ConnectOptions

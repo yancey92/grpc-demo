@@ -28,6 +28,7 @@ import (
 	"os"
 
 	credinternal "google.golang.org/grpc/internal/credentials"
+	trace "google.golang.org/grpc/trace"
 )
 
 // TLSInfo contains the auth information for a TLS authenticated connection.
@@ -96,14 +97,27 @@ func (c *tlsCreds) ClientHandshake(ctx context.Context, authority string, rawCon
 		}
 		cfg.ServerName = serverName
 	}
+
 	conn := tls.Client(rawConn, cfg)
 	errChannel := make(chan error, 1)
+
+	// TODO: author: yangxinxin_mail@163.com
+	handler, _ := ctx.Value(trace.HandshakeHandlerContextKey{}).(*trace.HandshakeHandler)
+	if handler != nil && handler.TLSHandshakeStart != nil {
+		handler.TLSHandshakeStart(cfg.ServerName)
+	}
+
 	go func() {
 		errChannel <- conn.Handshake()
 		close(errChannel)
 	}()
 	select {
 	case err := <-errChannel:
+		// TODO: author: yangxinxin_mail@163.com
+		if handler != nil && handler.TLSHandshakeStart != nil {
+			handler.TLSHandshakeDone(cfg.ServerName, err)
+		}
+
 		if err != nil {
 			conn.Close()
 			return nil, nil, err

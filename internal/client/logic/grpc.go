@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/trace"
 )
 
 func getCertPool(rootCAPath string) (*x509.CertPool, error) {
@@ -105,31 +106,31 @@ func MockRPC() (metrics *models.MetricsGRPC, err error) {
 		return err
 	}
 
-	// handshakeHandler := &trace.HandshakeHandler{
-	// 	HandshakeStart: func() {
-	// 		t := time.Now()
-	// 		metrics.HandshakeBegin = t
-	// 	},
-	// 	HandshakeDone: func(err error) {
-	// 		t := time.Now()
-	// 		metrics.HandshakeEnd = t
-	// 	},
-	// 	TLSHandshakeStart: func(serverName string) {
-	// 		t := time.Now()
-	// 		metrics.TLSHandshakeBegin = t
-	// 	},
-	// 	TLSHandshakeDone: func(serverName string, err error) {
-	// 		t := time.Now()
-	// 		metrics.TLSHandshakeEnd = t
-	// 	},
-	// }
+	handshakeHandler := &trace.HandshakeHandler{
+		HandshakeStart: func() {
+			t := time.Now()
+			metrics.HandshakeBegin = t
+		},
+		HandshakeDone: func(err error) {
+			t := time.Now()
+			metrics.HandshakeEnd = t
+		},
+		TLSHandshakeStart: func(serverName string) {
+			t := time.Now()
+			metrics.TLSHandshakeBegin = t
+		},
+		TLSHandshakeDone: func(serverName string, err error) {
+			t := time.Now()
+			metrics.TLSHandshakeEnd = t
+		},
+	}
 
 	dialOptions := []grpc.DialOption{
 		grpc.WithBlock(),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024 * 1024 * 100)),
 		grpc.WithUnaryInterceptor(clientInterceptor),
 		grpc.WithTransportCredentials(creds),
-		// grpc.WithTransportCredentialsHandler(handshakeHandler),
+		grpc.WithTransportCredentialsHandler(handshakeHandler),
 		grpc.WithContextDialer(customDialer), // 根据设置的超时时间，会指数回退方式尝试调用customDialer
 	}
 	ctxDial, cancelDial := context.WithTimeout(context.Background(), timeout)
@@ -149,25 +150,25 @@ func MockRPC() (metrics *models.MetricsGRPC, err error) {
 
 	ctxCall, cancelCall := context.WithTimeout(context.Background(), timeout)
 	defer cancelCall()
-	// requestHandler := &trace.RequestHandler{
-	// 	RequestStart: func() {
-	// 		t := time.Now()
-	// 		metrics.RequestBegin = t
-	// 	},
-	// 	RequestDone: func(err error) {
-	// 		t := time.Now()
-	// 		metrics.RequestEnd = t
-	// 	},
-	// 	ResponseStart: func() {
-	// 		t := time.Now()
-	// 		metrics.ResponseBegin = t
-	// 	},
-	// 	ResponseDone: func(err error) {
-	// 		t := time.Now()
-	// 		metrics.ResponseEnd = t
-	// 	},
-	// }
-	// ctxCall = context.WithValue(ctxCall, trace.RequestHandlerContextKey{}, requestHandler)
+	requestHandler := &trace.RequestHandler{
+		RequestStart: func() {
+			t := time.Now()
+			metrics.RequestBegin = t
+		},
+		RequestDone: func(err error) {
+			t := time.Now()
+			metrics.RequestEnd = t
+		},
+		ResponseStart: func() {
+			t := time.Now()
+			metrics.ResponseBegin = t
+		},
+		ResponseDone: func(err error) {
+			t := time.Now()
+			metrics.ResponseEnd = t
+		},
+	}
+	ctxCall = context.WithValue(ctxCall, trace.RequestHandlerContextKey{}, requestHandler)
 	client := pb.NewMyCustomClient(conn)
 	data := pb.MyCustomRequest{}
 	faker.FakeData(&data)
