@@ -111,6 +111,7 @@
 * 我们拿到 *.proto 文件，挑选出需要调用的接口和对应的上下行协议（configs/render_value.yaml）；
 * 抽象出一个 Custom Function 来调用这个名字不确定的RPC接口，这样就屏蔽了用户的接口定义（具体如何屏蔽的见模版configs/template.go.txt）。
 * 这样我们的代码就不用针对不同的grpc server在单独做开发了，只需要根据配置把模版渲染出来即可。同时，对于我们上层开发者来说，Custom Function 是固定的，也不需要每次改代码了。
+* 此外，__获取这些指标，还需要修改 "google.golang.org/grpc" 的源代码__ (所以使用了 go vendor 机制)，以在gRPC通信过程的各个环节获取他们的开始时间和结束时间。
 
 -------
 架构如下：
@@ -121,17 +122,21 @@
 ### 主要介绍一下 grpc-client 项目结构
 
 ```
+tree -L 2 -F
 ./
-├── README.md
 ├── bin/                                 # tools to generate gRPC code
-│   ├── protoc-gen-go-grpc-osx-x86_64*
-│   ├── protoc-gen-go-grpc.exe
-│   ├── protoc-gen-go-osx-x86_64*
-│   ├── protoc-gen-go.exe
-│   ├── protoc-linux-x86_64
+│   ├── protoc-gen-go-grpc-linux-amd64*
+│   ├── protoc-gen-go-grpc-osx-amd64*
+│   ├── protoc-gen-go-grpc-osx-arm64*
+│   ├── protoc-gen-go-grpc-win-amd64.exe
+│   ├── protoc-gen-go-linux-amd64*
+│   ├── protoc-gen-go-osx-amd64*
+│   ├── protoc-gen-go-osx-arm64*
+│   ├── protoc-gen-go-win-amd64.exe
+│   ├── protoc-linux-amd64
+│   ├── protoc-osx-amd64*
 │   ├── protoc-osx-arm64*
-│   ├── protoc-osx-x86_64*
-│   ├── protoc-win64.exe
+│   └── protoc-win-amd64.exe
 ├── cmd/
 │   ├── client/                          # grpc client main
 │   ├── render/                          # custom render main
@@ -141,30 +146,32 @@
 │   ├── key/
 │   ├── render_value.yaml
 │   └── template.go.txt
-├── go.mod
-├── go.sum
 ├── internal/
 │   ├── client/
 │   └── server/
 ├── media/
 │   └── 17065866939745.jpg
-├── pkg/                                 # tools
-├── scripts/                             # project build and running script
-│   ├── client-start.sh*
-│   └── server-start.sh*
+├── pkg/                                  # tools
+├── go.mod
+├── go.sum
+├── zcommon.sh*
+├── zstart-client.sh*                     # build and start client
+├── zstart-server.sh*                     # build and start server
+├── Makefile
+├── README.md
 └── vendor/                              # go mod vendor
 ```
 
 ### 运行
 #### 启动 grpc-server:
-    sh scripts/server-start.sh
+    sh server-start.sh  (或 make start_server)
 
 
 #### 启动 grpc-client:
 1. 如果你是在本地调试，并且使用了证书，请配置 hosts: `127.0.0.1 my.grpc.com`
 
 
-2. 直接运行 sh scripts/client-start.sh，该脚本主要作用：
+2. 直接运行 sh client-start.sh (或 make start_client)，该脚本主要作用：
     1. 编译出 render (render 的主要作用是渲染 template.go.txt)
     2. 使用 bin/protoc* 工具，生成 gRPC client 代码到 internal/proto/ 下面
     3. render 程序渲染 configs/template.go.txt，渲染时会使用 configs/render_value.yaml 中的配置
